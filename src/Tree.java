@@ -45,6 +45,11 @@ class Tree<T> {
         }
     }
 
+    // Calculate the average of all the values in the tree
+
+
+
+
     // Check if the tree contains an item
     public boolean contains(T item) {
         if (isEmpty()) {
@@ -63,6 +68,25 @@ class Tree<T> {
         return false;
     }
 
+    // Return a list of all leaves in the tree
+    public ArrayList<T> leaves() {
+        ArrayList<T> leafList = new ArrayList<>();
+
+        if (isEmpty()) {
+            return leafList;
+        } else if (subtrees.isEmpty()) {
+            // If there are no subtrees, this node is a leaf
+            leafList.add(root);
+        } else {
+            // Recursively add leaves from subtrees
+            for (Tree<T> subtree : subtrees) {
+                leafList.addAll(subtree.leaves());
+            }
+        }
+        return leafList;
+    }
+
+
     // Insert an item into the tree
     public void insert(T item) {
         if (isEmpty()) {
@@ -79,6 +103,25 @@ class Tree<T> {
             }
         }
     }
+
+    // Insert an item as a child of the specified parent
+    public boolean insertChild(T item, T parent) {
+        if (isEmpty()) {
+            return false;
+        } else if (root.equals(parent)) {
+            subtrees.add(new Tree<>(item));  // Add item as a new subtree
+            return true;
+        } else {
+            // Recursively try to insert the item in subtrees
+            for (Tree<T> subtree : subtrees) {
+                if (subtree.insertChild(item, parent)) {
+                    return true;
+                }
+            }
+            return false;  // Parent not found
+        }
+    }
+
 
     // Delete an item from the tree (if it exists)
     public boolean deleteItem(T item) {
