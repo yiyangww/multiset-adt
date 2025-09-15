@@ -6,18 +6,22 @@ to try running it.
 
 The output should look something like the below (timing will vary of course):
 
-  500       <class '__main__.TreeMultiSet'>  0.005346
- 1000       <class '__main__.TreeMultiSet'>  0.016313
- 2000       <class '__main__.TreeMultiSet'>  0.050477
- 4000       <class '__main__.TreeMultiSet'>  0.143083
-  500  <class '__main__.ArrayListMultiSet'>  0.000093
- 1000  <class '__main__.ArrayListMultiSet'>  0.000219
- 2000  <class '__main__.ArrayListMultiSet'>  0.000665
- 4000  <class '__main__.ArrayListMultiSet'>  0.001758
-  500 <class '__main__.LinkedListMultiSet'>  0.002770
- 1000 <class '__main__.LinkedListMultiSet'>  0.008147
- 2000 <class '__main__.LinkedListMultiSet'>  0.016326
- 4000 <class '__main__.LinkedListMultiSet'>  0.049379
+  500        <class '__main__.BSTMultiSet'>  0.000632
+ 1000        <class '__main__.BSTMultiSet'>  0.001360
+ 2000        <class '__main__.BSTMultiSet'>  0.002675
+ 4000        <class '__main__.BSTMultiSet'>  0.004956
+  500 <class '__main__.LinkedListMultiSet'>  0.001782
+ 1000 <class '__main__.LinkedListMultiSet'>  0.004830
+ 2000 <class '__main__.LinkedListMultiSet'>  0.013345
+ 4000 <class '__main__.LinkedListMultiSet'>  0.041657
+  500  <class '__main__.ArrayListMultiSet'>  0.000072
+ 1000  <class '__main__.ArrayListMultiSet'>  0.000170
+ 2000  <class '__main__.ArrayListMultiSet'>  0.000491
+ 4000  <class '__main__.ArrayListMultiSet'>  0.001642
+  500       <class '__main__.TreeMultiSet'>  0.004821
+ 1000       <class '__main__.TreeMultiSet'>  0.014988
+ 2000       <class '__main__.TreeMultiSet'>  0.041059
+ 4000       <class '__main__.TreeMultiSet'>  0.132969
 
 You might also find it helpful to 'Split Right' or 'Split Down' in the editor by
 right-clicking the tab above with this file's name on it, to allow you to look at
@@ -28,7 +32,6 @@ from __future__ import annotations
 
 import random
 import time
-from typing import Any, Optional
 
 
 class MultiSet:
@@ -40,23 +43,206 @@ class MultiSet:
     so it just inherits Object.__init__.
     """
 
-    def add(self, item: Any) -> bool:
+    def add(self, item: int) -> None:
         raise NotImplementedError
 
-    def remove(self, item: Any) -> None:
+    def remove(self, item: int) -> None:
         raise NotImplementedError
 
-    def contains(self, item: Any) -> bool:
+    def contains(self, item: int) -> bool:
         raise NotImplementedError
 
     def is_empty(self) -> bool:
         raise NotImplementedError
 
-    def count(self, item: Any) -> int:
+    def count(self, item: int) -> int:
         raise NotImplementedError
 
     def size(self) -> int:
         raise NotImplementedError
+
+
+class BST:
+    """Binary Search Tree class.
+
+    This class represents a binary tree satisfying the Binary Search Tree
+    property: for every item, its value is >= all items stored in its left
+    subtree, and <= all items stored in its right subtree.
+
+    Note: items that are equal to the root may appear in either subtree.
+    """
+    # === Private Attributes ===
+    # The item stored at the root of the tree, or None if the tree is empty.
+    _root: int | None
+    # The left subtree, or None if the tree is empty.
+    _left: BST | None
+    # The right subtree, or None if the tree is empty.
+    _right: BST | None
+
+    # === Representation Invariants ===
+    #  - If self._root is None, then so are self._left and self._right.
+    #    This represents an empty BST.
+    #  - If self._root is not None, then self._left and self._right
+    #    are BinarySearchTrees.
+    #  - (BST Property) If self is not empty, then
+    #    all items in self._left are <= self._root, and
+    #    all items in self._right are >= self._root.
+
+    def __init__(self, root: int | None) -> None:
+        """Initialize a new BST containing only the given root value.
+
+        If <root> is None, initialize an empty tree.
+        """
+        if root is None:
+            self._root = None
+            self._left = None
+            self._right = None
+        else:
+            self._root = root
+            self._left = BST(None)
+            self._right = BST(None)
+
+    def is_empty(self) -> bool:
+        """Return whether this BST is empty.
+        """
+        return self._root is None
+
+    def __contains__(self, item: int) -> bool:
+        """Return whether <item> is in this BST.
+        """
+        if self.is_empty():
+            return False
+        elif item == self._root:
+            return True
+        elif item < self._root:
+            return item in self._left
+        else:
+            return item in self._right
+
+    def insert(self, item: int) -> None:
+        """Insert <item> into this tree.
+        """
+        if self.is_empty():
+            # Make new leaf.
+            # Note that self._left and self._right cannot be None when the
+            # tree is non-empty! (This is one of our invariants.)
+            self._root = item
+            self._left = BST(None)
+            self._right = BST(None)
+        elif item <= self._root:
+            self._left.insert(item)
+        else:
+            self._right.insert(item)
+
+    def delete(self, item: int) -> None:
+        """Remove *one* occurrence of <item> from this BST.
+
+        Do nothing if <item> is not in the BST.
+        """
+        if self.is_empty():
+            pass
+        elif self._root == item:
+            self.delete_root()
+        elif item < self._root:
+            self._left.delete(item)
+        else:
+            self._right.delete(item)
+
+    def delete_root(self) -> None:
+        """Remove the root of this tree.
+
+        Precondition: this tree is *non-empty*.
+        """
+        if self._left.is_empty() and self._right.is_empty():
+            self._root = None
+            self._left = None
+            self._right = None
+        elif self._left.is_empty():
+            # "Promote" the right subtree.
+            # Note that self = self._right does NOT work!
+            self._root, self._left, self._right = \
+                self._right._root, self._right._left, self._right._right
+        elif self._right.is_empty():
+            # "Promote" the left subtree.
+            self._root, self._left, self._right = \
+                self._left._root, self._left._left, self._left._right
+        else:
+            # Both subtrees are non-empty. Can choose to replace the root
+            # from either the max value of the left subtree, or the min value
+            # of the right subtree.
+            # (Implementations are very similar, but we'll take the max from the left here.)
+            self._root = self._left._extract_max()
+
+    def _extract_max(self) -> int:
+        """Remove and return the maximum item stored in this tree.
+
+        Precondition: this tree is *non-empty*.
+        """
+        if self._right.is_empty():
+            max_item = self._root
+            # "Promote" the left subtree.
+            # Alternate approach: call self.delete_root()!
+            self._root, self._left, self._right = \
+                self._left._root, self._left._left, self._left._right
+            return max_item
+        else:
+            return self._right._extract_max()
+
+    def height(self) -> int:
+        """Return the height of this BST.
+        """
+        if self.is_empty():
+            return 0
+        else:
+            return max(self._left.height(), self._right.height()) + 1
+
+    def count(self, item: int) -> int:
+        """Return the number of occurrences of <item> in this BST.
+        """
+        if self.is_empty():
+            return 0
+        elif self._root > item:
+            return self._left.count(item)
+        elif self._root == item:
+            return 1 + self._left.count(item) + self._right.count(item)
+        else:
+            return self._right.count(item)
+
+    def __len__(self) -> int:
+        """Return the number of items in this BST.
+        """
+        if self.is_empty():
+            return 0
+        return 1 + len(self._left) + len(self._right)
+
+
+class BSTMultiSet(MultiSet):
+    """
+    This class uses an underlying BST to implement our MultiSet ADT.
+    """
+
+    _tree: BST
+
+    def __init__(self):
+        self._tree = BST(None)
+
+    def add(self, item: int) -> None:
+        self._tree.insert(item)
+
+    def remove(self, item: int) -> None:
+        self._tree.delete(item)
+
+    def contains(self, item: int) -> bool:
+        return item in self._tree
+
+    def is_empty(self) -> bool:
+        return self._tree.is_empty()
+
+    def count(self, item: int) -> int:
+        return self._tree.count(item)
+
+    def size(self) -> int:
+        return len(self._tree)
 
 
 class Tree:
@@ -68,7 +254,7 @@ class Tree:
     """
     # === Private Attributes ===
     # The item stored at this tree's root, or None if the tree is empty.
-    _root: Optional[Any]
+    _root: int | None
     # The list of all subtrees of this tree.
     _subtrees: list[Tree]
 
@@ -80,7 +266,7 @@ class Tree:
     #   This setting of attributes represents a tree consisting of just one
     #   node.
 
-    def __init__(self, root: Optional[Any],
+    def __init__(self, root: int | None,
                  subtrees: None | list[Tree] = None) -> None:
         """Initialize a new Tree with the given root value and subtrees.
 
@@ -123,7 +309,7 @@ class Tree:
                 size += subtree.__len__()  # could also do len(subtree) here
             return size
 
-    def count(self, item: Any) -> int:
+    def count(self, item: int) -> int:
         """Return the number of occurrences of <item> in this tree.
         >>> t = Tree(3, [Tree(4, []), Tree(1, [])])
         >>> t.count(3)
@@ -144,7 +330,7 @@ class Tree:
     def __str__(self) -> str:
         """Return a string representation of this tree.
 
-        For each node, its item is printed before any of its
+        For each node, its item is printed before int of its
         descendants' items. The output is nicely indented.
 
         You may find this method helpful for debugging.
@@ -243,7 +429,7 @@ class Tree:
 
             return self._subtrees == other._subtrees
 
-    def __contains__(self, item: Any) -> bool:
+    def __contains__(self, item: int) -> bool:
         """Return whether <item> is in this tree.
 
         >>> t = Tree(1, [Tree(2, []), Tree(5, [])])
@@ -266,7 +452,7 @@ class Tree:
                     return True
             return False
 
-    def leaves(self) -> list:
+    def leaves(self) -> list[int]:
         """Return a list of all the leaf items in the tree.
 
         >>> Tree(None, []).leaves()
@@ -294,7 +480,7 @@ class Tree:
     # -------------------------------------------------------------------------
     # Mutating methods
     # -------------------------------------------------------------------------
-    def delete_item(self, item: Any) -> bool:
+    def delete_item(self, item: int) -> bool:
         """Delete *one* occurrence of the given item from this tree.
 
         Return True if <item> was deleted, and False otherwise.
@@ -348,7 +534,7 @@ class Tree:
                     pass
 
             # If we don't return inside the loop, the item is not deleted
-            # from any of the subtrees. In this case, the item does not
+            # from int of the subtrees. In this case, the item does not
             # appear in this tree.
             return False
 
@@ -374,7 +560,7 @@ class Tree:
             # 2. Update self._root. (Note that self._subtrees remains the same.)
             # self._root = leaf
 
-    def _extract_leaf(self) -> Any:
+    def _extract_leaf(self) -> int:
         """Remove and return the leftmost leaf in a tree.
 
         Precondition: this tree is non-empty.
@@ -392,7 +578,7 @@ class Tree:
 
             return leaf
 
-    def insert(self, item: Any) -> None:
+    def insert(self, item: int) -> None:
         """Insert <item> into this tree using the following algorithm.
 
             1. If the tree is empty, <item> is the new root of the tree.
@@ -429,7 +615,7 @@ class Tree:
                 subtree_index = random.randint(0, len(self._subtrees) - 1)
                 self._subtrees[subtree_index].insert(item)
 
-    def insert_child(self, item: Any, parent: Any) -> bool:
+    def insert_child(self, item: int, parent: int) -> bool:
         """Insert <item> into this tree as a child of <parent>.
 
         If successful, return True. If <parent> is not in this tree,
@@ -460,20 +646,19 @@ class TreeMultiSet(MultiSet):
     def __init__(self):
         self._tree = Tree(None)
 
-    def add(self, item: Any) -> bool:
+    def add(self, item: int) -> None:
         self._tree.insert(item)
-        return True  # always returns True!
 
-    def remove(self, item: Any) -> None:
+    def remove(self, item: int) -> None:
         self._tree.delete_item(item)
 
-    def contains(self, item: Any) -> bool:
+    def contains(self, item: int) -> bool:
         return item in self._tree
 
     def is_empty(self) -> bool:
         return self._tree.is_empty()
 
-    def count(self, item: Any) -> int:
+    def count(self, item: int) -> int:
         return self._tree.count(item)
 
     def size(self) -> int:
@@ -481,29 +666,31 @@ class TreeMultiSet(MultiSet):
 
 
 class ArrayListMultiSet(MultiSet):
+    """
+    This class uses an underlying list to implement our MultiSet ADT.
+    """
 
     _list: list
 
     def __init__(self):
         self._list = []
 
-    def add(self, item: Any) -> bool:
+    def add(self, item: int) -> None:
         self._list.append(item)
-        return True
 
-    def remove(self, item: Any) -> None:
+    def remove(self, item: int) -> None:
         # we check that the item exists to avoid raising a ValueError,
         # since the MultiSet ADT doesn't say it will raise such an error!
         if item in self._list:
             self._list.remove(item)
 
-    def contains(self, item: Any) -> bool:
+    def contains(self, item: int) -> bool:
         return item in self._list
 
     def is_empty(self) -> bool:
         return len(self._list) == 0
 
-    def count(self, item: Any) -> int:
+    def count(self, item: int) -> int:
         return self._list.count(item)
 
     def size(self) -> int:
@@ -512,9 +699,9 @@ class ArrayListMultiSet(MultiSet):
 
 class LinkedListMultiSet(MultiSet):
     """
-    Unlike the TreeMultiList, this implementation does not just "wrap" an
-    underlying tree, it is instead a custom LinkedList implementation, which
-    only provides the necessary MultiSet methods.
+    Unlike the others, this implementation does not just "wrap" an
+    underlying data structure, it is instead a custom LinkedList implementation, which
+    directly provides the necessary MultiSet methods.
 
     Representation Invariant:
     self._front is None represents an empty MultiSet
@@ -527,14 +714,13 @@ class LinkedListMultiSet(MultiSet):
         self._front = None
         self._size = 0
 
-    def add(self, item: Any) -> bool:
+    def add(self, item: int) -> None:
         new_node = _Node(item)
         new_node.next = self._front
         self._front = new_node
         self._size += 1
-        return True
 
-    def remove(self, item: Any) -> None:
+    def remove(self, item: int) -> None:
         cur = self._front
         prev = None
         while cur is not None:
@@ -549,7 +735,7 @@ class LinkedListMultiSet(MultiSet):
         # if here, item not found
         return
 
-    def contains(self, item: Any) -> bool:
+    def contains(self, item: int) -> bool:
         cur = self._front
         while cur is not None:
             if cur.item == item:
@@ -560,7 +746,7 @@ class LinkedListMultiSet(MultiSet):
     def is_empty(self) -> bool:
         return self._front is None
 
-    def count(self, item: Any) -> int:
+    def count(self, item: int) -> int:
         num_seen = 0
         cur = self._front
         while cur is not None:
@@ -577,10 +763,10 @@ class _Node:
     """
     Internal node structure used by the LinkedListMultiSet above.
     """
-    item: Any
+    item: int
     next: _Node | None
 
-    def __init__(self, item: Any) -> None:
+    def __init__(self, item: int) -> None:
         self.item = item
         self.next = None
 
@@ -617,9 +803,6 @@ def profileMultiSet(my_input: MultiSet, n: int) -> None:
 
 
 # For the main block, some parts won't neatly translate to Java,
-# so don't worry about replicating their functionality, but still think about
-# and discuss what each part does and how one might do similar things in
-# Java.
 if __name__ == '__main__':
     # import doctest
     # doctest.testmod()
@@ -629,7 +812,7 @@ if __name__ == '__main__':
     # python_ta.check_all(config={'extra-imports': ['random']})
 
     # perform a little timing experiment
-    multisets = [TreeMultiSet(), ArrayListMultiSet(), LinkedListMultiSet()]
+    multisets = [BSTMultiSet(), LinkedListMultiSet(), ArrayListMultiSet(), TreeMultiSet()]
     for multiset in multisets:
         for n in [500, 1000, 2000, 4000]:
             profileMultiSet(multiset, n)

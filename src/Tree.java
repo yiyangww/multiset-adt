@@ -1,147 +1,103 @@
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-class Tree<T> {
-    private T root;
-    private ArrayList<Tree<T>> subtrees;
+public class Tree {
+    private Integer root;
+    private List<Tree> subtrees;
+    private static Random random = new Random();
 
-    // Constructor
-    public Tree(T root) {
+    public Tree() {
+        this.root = null;
+        this.subtrees = new ArrayList<>();
+    }
+
+    public Tree(int root) {
         this.root = root;
         this.subtrees = new ArrayList<>();
     }
 
-    // Check if the tree is empty
+    public Tree(int root, List<Tree> subtrees) {
+        this.root = root;
+        this.subtrees = new ArrayList<>(subtrees);
+    }
+
     public boolean isEmpty() {
         return root == null;
     }
 
-    // Get the size of the tree (number of elements)
-    public int size() {
+    public int getSize() {
         if (isEmpty()) {
             return 0;
         } else {
-            int size = 1;  // count the root
-            for (Tree<T> subtree : subtrees) {
-                size += subtree.size();  // recursive call to get size of subtrees
+            int size = 1;
+            for (Tree subtree : subtrees) {
+                size += subtree.getSize();
             }
             return size;
         }
     }
 
-    // Count occurrences of an item in the tree
-    public int count(T item) {
+    public int count(int item) {
         if (isEmpty()) {
             return 0;
         } else {
             int num = 0;
-            if (root.equals(item)) {
+            if (root == item) {
                 num += 1;
             }
-            for (Tree<T> subtree : subtrees) {
-                num += subtree.count(item);  // recursive call
+            for (Tree subtree : subtrees) {
+                num += subtree.count(item);
             }
             return num;
         }
     }
 
-    // Calculate the average of all the values in the tree
-
-
-
-
-    // Check if the tree contains an item
-    public boolean contains(T item) {
+    public boolean contains(int item) {
         if (isEmpty()) {
             return false;
         }
-
-        if (root.equals(item)) {
+        if (root == item) {
             return true;
-        }
-
-        for (Tree<T> subtree : subtrees) {
-            if (subtree.contains(item)) {
-                return true;
+        } else {
+            for (Tree subtree : subtrees) {
+                if (subtree.contains(item)) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
     }
 
-    // Return a list of all leaves in the tree
-    public ArrayList<T> leaves() {
-        ArrayList<T> leafList = new ArrayList<>();
-
+    public void insert(int item) {
         if (isEmpty()) {
-            return leafList;
+            this.root = item;
         } else if (subtrees.isEmpty()) {
-            // If there are no subtrees, this node is a leaf
-            leafList.add(root);
+            subtrees.add(new Tree(item));
         } else {
-            // Recursively add leaves from subtrees
-            for (Tree<T> subtree : subtrees) {
-                leafList.addAll(subtree.leaves());
-            }
-        }
-        return leafList;
-    }
-
-
-    // Insert an item into the tree
-    public void insert(T item) {
-        if (isEmpty()) {
-            root = item;
-        } else if (subtrees.isEmpty()) {
-            subtrees.add(new Tree<>(item));
-        } else {
-            Random random = new Random();
-            if (random.nextInt(3) == 2) {
-                subtrees.add(new Tree<>(item));
+            if (random.nextInt(3) + 1 == 3) {
+                subtrees.add(new Tree(item));
             } else {
                 int subtreeIndex = random.nextInt(subtrees.size());
-                subtrees.get(subtreeIndex).insert(item);  // recursively insert into a random subtree
+                subtrees.get(subtreeIndex).insert(item);
             }
         }
     }
 
-    // Insert an item as a child of the specified parent
-    public boolean insertChild(T item, T parent) {
+    public boolean deleteItem(int item) {
         if (isEmpty()) {
             return false;
-        } else if (root.equals(parent)) {
-            subtrees.add(new Tree<>(item));  // Add item as a new subtree
+        } else if (root == item) {
+            deleteRoot();
             return true;
         } else {
-            // Recursively try to insert the item in subtrees
-            for (Tree<T> subtree : subtrees) {
-                if (subtree.insertChild(item, parent)) {
+            for (int i = 0; i < subtrees.size(); i++) {
+                Tree subtree = subtrees.get(i);
+                boolean deleted = subtree.deleteItem(item);
+                if (deleted && subtree.isEmpty()) {
+                    subtrees.remove(i);
                     return true;
-                }
-            }
-            return false;  // Parent not found
-        }
-    }
-
-
-    // Delete an item from the tree (if it exists)
-    public boolean deleteItem(T item) {
-        if (isEmpty()) {
-            return false;
-        } else if (root.equals(item)) {
-            if (!subtrees.isEmpty()) {
-                Tree<T> lastSubtree = subtrees.remove(subtrees.size() - 1);
-                root = lastSubtree.root;
-                subtrees.addAll(lastSubtree.subtrees);  // reassign the last subtree's root and subtrees
-            } else {
-                root = null;  // no subtrees, so tree becomes empty
-            }
-            return true;
-        } else {
-            for (Tree<T> subtree : subtrees) {
-                if (subtree.deleteItem(item)) {
-                    if (subtree.isEmpty()) {
-                        subtrees.remove(subtree);  // remove the empty subtree
-                    }
+                } else if (deleted) {
                     return true;
                 }
             }
@@ -149,18 +105,13 @@ class Tree<T> {
         }
     }
 
-    // Print the tree with indentation for debugging purposes
-    public void printTree() {
-        printIndentedTree(0);
-    }
-
-    // Recursive helper to print the tree with indentation
-    private void printIndentedTree(int depth) {
-        if (!isEmpty()) {
-            System.out.println("  ".repeat(depth) + root);
-            for (Tree<T> subtree : subtrees) {
-                subtree.printIndentedTree(depth + 1);
-            }
+    private void deleteRoot() {
+        if (subtrees.isEmpty()) {
+            root = null;
+        } else {
+            Tree chosenSubtree = subtrees.remove(subtrees.size() - 1);
+            root = chosenSubtree.root;
+            subtrees.addAll(chosenSubtree.subtrees);
         }
     }
 }

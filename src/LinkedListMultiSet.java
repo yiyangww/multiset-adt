@@ -1,33 +1,37 @@
-import java.util.LinkedList;
 
-public class LinkedListMultiSet<T> implements MultiSet<T> {
-    private Node<T> front;
+// Node is only used inside the LinkedList class, so we define it in the same file;
+// there can only be one public class in a file, but there can also be non-public classes.
+class Node {
+    int item;
+    Node next;
+
+    Node(int item) {
+        this.item = item;
+    }
+}
+
+public class LinkedListMultiSet extends MultiSet {
+
+    // a linked list initially is empty
+    private Node front;
     private int size;
 
-    public LinkedListMultiSet() {
-        this.front = null;
-        this.size = 0;
-    }
-
-    @Override
-    public boolean add(T item) {
-        Node<T> newNode = new Node<>(item);
+    public void add(int item) {
+        Node newNode = new Node(item);
         newNode.next = front;
         front = newNode;
-        size++;
-        return true;
+        size += 1;
     }
 
-    @Override
-    public void remove(T item) {
-        Node<T> cur = front;
-        Node<T> prev = null;
+    public void remove(int item) {
+        Node cur = front;
+        Node prev = null;
         while (cur != null) {
-            if (cur.item.equals(item)) {
-                size--;
+            if (cur.item == item) {
+                size -= 1;
                 if (prev != null) {
                     prev.next = cur.next;
-                } else { // first item
+                } else {
                     front = cur.next;
                 }
                 return;
@@ -37,11 +41,10 @@ public class LinkedListMultiSet<T> implements MultiSet<T> {
         }
     }
 
-    @Override
-    public boolean contains(T item) {
-        Node<T> cur = front;
+    public boolean contains(int item) {
+        Node cur = front;
         while (cur != null) {
-            if (cur.item.equals(item)) {
+            if (cur.item == item) {
                 return true;
             }
             cur = cur.next;
@@ -49,36 +52,23 @@ public class LinkedListMultiSet<T> implements MultiSet<T> {
         return false;
     }
 
-    @Override
     public boolean isEmpty() {
         return front == null;
     }
 
-    @Override
-    public int count(T item) {
+    public int count(int item) {
         int numSeen = 0;
-        Node<T> cur = front;
+        Node cur = front;
         while (cur != null) {
-            if (cur.item.equals(item)) {
-                numSeen++;
+            if (cur.item == item) {
+                numSeen += 1;
             }
             cur = cur.next;
         }
         return numSeen;
     }
 
-    @Override
     public int size() {
         return size;
-    }
-
-    private static class Node<T> {
-        T item;
-        Node<T> next;
-
-        Node(T item) {
-            this.item = item;
-            this.next = null;
-        }
     }
 }

@@ -1,48 +1,70 @@
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+/**
+ * The Main class contains the main method with the timing experiment.
+ * This file is provided; do not modify.
+ */
 public class Main {
     public static void main(String[] args) {
-        MultiSet[] multiSets = new MultiSet[] {
-                new ArrayListMultiSet<>(),
-                new LinkedListMultiSet<>(),
-                new TreeMultiSet<>()
-        };
 
-        for (MultiSet multiSet : multiSets) {
-            for (int n : new int[] {500, 1000, 2000, 4000}) {
-                profileMultiSet(multiSet, n);
+        // this corresponds to the main block from the provided python code
+        List<MultiSet> multisets = new ArrayList<>();
+        multisets.add(new BSTMultiSet());
+        multisets.add(new LinkedListMultiSet());
+        multisets.add(new ArrayListMultiSet());
+        multisets.add(new TreeMultiSet());
+
+
+        for (MultiSet m :
+                multisets) {
+            for (int n :
+                    new int[] {500, 1000, 2000, 4000, 8000, 16000}) {
+                profileMultiSet(m, n);
             }
         }
     }
 
-    public static void profileMultiSet(MultiSet<Integer> multiSet, int n) {
-        Random random = new Random();
-        ArrayList<Integer> items = new ArrayList<>();
+    /**
+     * Run the timing experiment for the given MultiSet implementation and
+     * problem size.
+     *     """
+     * @param m the MultiSet object
+     * @param n the problem size
+     */
+    private static void profileMultiSet(MultiSet m, int n) {
 
-        // Add items
+        List<Integer> itemsAdded = new ArrayList<>();
+        Random random = new Random();
         for (int i = 0; i < n; i++) {
             int x = random.nextInt(100);
-            multiSet.add(x);
-            items.add(x);
+            m.add(x);
+            itemsAdded.add(x);
+        }
+        if (m.size() != n) {
+            System.out.println("adding the items failed!");
+            return;
         }
 
-        // Ensure all items are added
-        assert multiSet.size() == n;
 
-        long start = System.nanoTime();
-
-        // Remove all items
-        for (int x : items) {
-            multiSet.remove(x);
+        final long startTime = System.nanoTime();
+        for (int x :
+                itemsAdded) {
+            m.remove(x);
         }
 
-        long end = System.nanoTime();
 
-        // Ensure all items are removed
-        assert multiSet.isEmpty();
+        final long endTime = System.nanoTime();
 
-        System.out.printf("%5d %37s %12.6f\n", n, multiSet.getClass().getSimpleName(), (end - start) / 1e9);
+
+        if (!m.isEmpty()) {
+            System.out.println("removing items failed!");
+            return;
+        }
+
+        // you can hover printf if you want to learn more about the string formatting syntax
+        System.out.printf("%5d %20s %2.2es%n", n, m.getClass(), (endTime - startTime)/1_000_000_000.0f);
+
     }
 }
-
